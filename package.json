@@ -1,9 +1,14 @@
-async function getMarketData() {
-    return {
-        price: 100 + Math.random() * 10,
-        rsi: Math.random() * 100,
-        trend: Math.random() > 0.5 ? "up" : "down"
-    };
+{
+  "name": "trading-bot",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2"
+  }
 }
-
-module.exports = { getMarketData };
