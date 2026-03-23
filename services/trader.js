@@ -1,10 +1,15 @@
 let balance = 10000;
 let position = null;
-let history = []; // سجل الصفقات
+let history = [];
+let totalProfit = 0;
 
 function executeTrade(decision, price) {
+
+    // شراء
     if (decision === "BUY" && !position) {
-        position = { entry: price };
+        position = {
+            entry: price
+        };
 
         const trade = {
             action: "BUY",
@@ -16,14 +21,18 @@ function executeTrade(decision, price) {
         return trade;
     }
 
+    // بيع
     if (decision === "SELL" && position) {
         const profit = price - position.entry;
+        totalProfit += profit;
         balance += profit;
 
         const trade = {
             action: "SELL",
+            entry: position.entry,
             price,
             profit,
+            totalProfit,
             balance,
             time: new Date()
         };
@@ -37,4 +46,7 @@ function executeTrade(decision, price) {
     return { action: "HOLD" };
 }
 
-module.exports = { executeTrade, history };
+module.exports = {
+    executeTrade,
+    history
+};
