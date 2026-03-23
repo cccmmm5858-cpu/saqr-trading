@@ -15,41 +15,40 @@ app.get('/run', async (req, res) => {
         );
     }
 
-    // رسالة تيليجرام
-    if (result.bestStock && trade) {
+    // 🔥 نرسل دايم (حتى لو انتظار)
+    if (result.bestStock) {
 
         let message = `
 📊 أفضل سهم:
 ${result.bestStock.name} (${result.bestStock.symbol})
 
+💰 السعر: ${result.bestStock.price}
 📉 RSI: ${result.bestStock.rsi.toFixed(2)}
+
 🤖 القرار: ${result.decision}
         `;
 
-        // شراء
-        if (trade["الإجراء"] === "شراء") {
+        if (trade && trade["الإجراء"] === "شراء") {
             message += `
 
-💰 سعر الدخول: ${trade["سعر_الدخول"]}
+💰 الدخول: ${trade["سعر_الدخول"]}
 🎯 الهدف: ${trade["الهدف"]}
-🛑 وقف الخسارة: ${trade["وقف_الخسارة"]}
+🛑 الوقف: ${trade["وقف_الخسارة"]}
             `;
         }
 
-        // بيع هدف
-        if (trade["الإجراء"] === "بيع (هدف)") {
+        if (trade && trade["الإجراء"] === "بيع (هدف)") {
             message += `
 
-✅ تم تحقيق الهدف
+✅ تحقق الهدف
 💰 الربح: ${trade["الربح"]}
             `;
         }
 
-        // وقف خسارة
-        if (trade["الإجراء"] === "بيع (وقف خسارة)") {
+        if (trade && trade["الإجراء"] === "بيع (وقف خسارة)") {
             message += `
 
-❌ تم ضرب وقف الخسارة
+❌ وقف الخسارة
 💸 الخسارة: ${trade["الخسارة"]}
             `;
         }
