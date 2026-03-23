@@ -16,6 +16,8 @@ app.get('/', (req, res) => {
 
 app.get('/run', async (req, res) => {
     try {
+        await sendTelegram("🔥 البوت شغال وتم تشغيل /run"); // ← هذا مهم
+
         const stocks = await getMarketData();
 
         if (!stocks || stocks.length === 0) {
