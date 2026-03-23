@@ -39,9 +39,16 @@ app.get('/status', (req, res) => {
     });
 });
 
-// سجل الصفقات 🔥
+// سجل الصفقات
 app.get('/history', (req, res) => {
     res.json(history);
+});
+
+// الأرباح
+app.get('/profit', (req, res) => {
+    res.json({
+        history,
+    });
 });
 
 // تشغيل تلقائي كل دقيقة 🤖
