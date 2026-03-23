@@ -1,88 +1,49 @@
-const express = require('express');
-const app = express();
-
-const { getMarketData } = require('./services/market');
-const { runStrategy } = require('./services/strategy');
-const { executeTrade } = require('./services/trade');
-const { sendTelegram } = require('./services/telegram');
-
-const PORT = process.env.PORT || 3000;
-
-let history = [];
-
-app.get('/', (req, res) => {
-    res.send('بوت التداول يعمل 🚀');
-});
-
 app.get('/run', async (req, res) => {
     try {
-        // اختبار تيليجرام
-        await sendTelegram("🔥 اختبار مباشر شغال");
+        await sendTelegram("🔥 بدأ تشغيل /run");
 
-        const stocks = await getMarketData();
-
-        if (!stocks || stocks.length === 0) {
-            return res.json({ message: "ما فيه بيانات سوق الآن" });
+        let stocks;
+        try {
+            stocks = await getMarketData();
+        } catch (e) {
+            await sendTelegram("❌ خطأ في جلب البيانات: " + e.message);
+            return res.json({ error: e.message });
         }
 
-        const result = runStrategy(stocks);
+        if (!stocks || stocks.length === 0) {
+            await sendTelegram("⚠️ ما فيه بيانات سوق");
+            return res.json({ message: "ما فيه بيانات" });
+        }
+
+        let result;
+        try {
+            result = runStrategy(stocks);
+        } catch (e) {
+            await sendTelegram("❌ خطأ في الاستراتيجية: " + e.message);
+            return res.json({ error: e.message });
+        }
 
         let trade = null;
 
         if (result.bestStock) {
-            trade = executeTrade(
-                result.decision,
-                result.bestStock.price,
-                result.bestStock.rsi
-            );
-        }
-
-        if (result.bestStock) {
-            let message = `
-📊 أفضل سهم:
-${result.bestStock.name} (${result.bestStock.symbol})
-
-💰 السعر: ${result.bestStock.price}
-📉 RSI: ${result.bestStock.rsi.toFixed(2)}
-
-🤖 القرار: ${result.decision}
-            `;
-
-            if (trade && trade["الإجراء"] === "شراء") {
-                message += `
-
-💰 الدخول: ${trade["سعر_الدخول"]}
-🎯 الهدف: ${trade["الهدف"]}
-🛑 الوقف: ${trade["وقف_الخسارة"]}
-                `;
+            try {
+                trade = executeTrade(
+                    result.decision,
+                    result.bestStock.price,
+                    result.bestStock.rsi
+                );
+            } catch (e) {
+                await sendTelegram("❌ خطأ في تنفيذ الصفقة: " + e.message);
             }
-
-            await sendTelegram(message);
-
-            history.push({
-                stock: result.bestStock.name,
-                decision: result.decision,
-                price: result.bestStock.price,
-                time: new Date()
-            });
         }
 
-        res.json({
-            result,
-            trade,
-            history
-        });
+        await sendTelegram("✅ البوت اشتغل بدون كراش");
+
+        res.json({ result, trade });
 
     } catch (error) {
         console.log(error);
+        await sendTelegram("💥 خطأ عام: " + error.message);
         res.status(500).json({ error: error.message });
     }
-});
-
-app.get('/profit', (req, res) => {
-    res.json({ history });
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
 });
