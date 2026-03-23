@@ -1,4 +1,14 @@
+const express = require('express');
+const app = express();
+
+const { getMarketData } = require('./services/market');
+const { runStrategy } = require('./services/strategy');
+const { executeTrade } = require('./services/trader');
 const { sendTelegram } = require('./services/telegram');
+
+app.get('/', (req, res) => {
+    res.send('بوت التداول يعمل 🚀');
+});
 
 app.get('/run', async (req, res) => {
 
@@ -15,7 +25,7 @@ app.get('/run', async (req, res) => {
         );
     }
 
-    // 🔥 نرسل دايم (حتى لو انتظار)
+    // إرسال تيليجرام
     if (result.bestStock) {
 
         let message = `
@@ -61,4 +71,11 @@ ${result.bestStock.name} (${result.bestStock.symbol})
         "القرار": result.decision,
         "الصفقة": trade
     });
+});
+
+// مهم لـ Railway
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
