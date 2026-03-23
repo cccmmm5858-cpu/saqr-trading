@@ -42,3 +42,10 @@ app.listen(PORT, () => {
     console.log(`Bot running on port ${PORT}`);
 });
 
+setInterval(async () => {
+    const data = await getMarketData();
+    const decision = runStrategy(data);
+    const trade = executeTrade(decision, data.price);
+
+    console.log("AUTO:", { data, decision, trade });
+}, 60000);
