@@ -6,15 +6,15 @@ let totalProfit = 0;
 function executeTrade(decision, price) {
 
     // شراء
-    if (decision === "BUY" && !position) {
+    if (decision === "شراء" && !position) {
         position = {
             entry: price
         };
 
         const trade = {
-            action: "BUY",
-            price,
-            time: new Date()
+            "الإجراء": "شراء",
+            "السعر": price,
+            "الوقت": new Date()
         };
 
         history.push(trade);
@@ -22,19 +22,19 @@ function executeTrade(decision, price) {
     }
 
     // بيع
-    if (decision === "SELL" && position) {
+    if (decision === "بيع" && position) {
         const profit = price - position.entry;
         totalProfit += profit;
         balance += profit;
 
         const trade = {
-            action: "SELL",
-            entry: position.entry,
-            price,
-            profit,
-            totalProfit,
-            balance,
-            time: new Date()
+            "الإجراء": "بيع",
+            "سعر_الدخول": position.entry,
+            "السعر": price,
+            "الربح": profit,
+            "إجمالي_الربح": totalProfit,
+            "الرصيد": balance,
+            "الوقت": new Date()
         };
 
         history.push(trade);
@@ -43,7 +43,7 @@ function executeTrade(decision, price) {
         return trade;
     }
 
-    return { action: "HOLD" };
+    return { "الإجراء": "انتظار" };
 }
 
 module.exports = {
