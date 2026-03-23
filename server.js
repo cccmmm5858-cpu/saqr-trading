@@ -1,16 +1,31 @@
+const express = require('express');
+const app = express();
+
+const { getMarketData } = require('./services/market');
+const { runStrategy } = require('./services/strategy');
+const { executeTrade } = require('./services/trade');
+const { sendTelegram } = require('./services/telegram');
+
+const PORT = process.env.PORT || 3000;
+
+let history = [];
+
+app.get('/', (req, res) => {
+    res.send('بوت التداول يعمل 🚀');
+});
+
 app.get('/run', async (req, res) => {
     try {
         const stocks = await getMarketData();
 
         if (!stocks || stocks.length === 0) {
-            return res.status(200).json({
-                message: "ما قدرت أجلب بيانات السوق الآن"
-            });
+            return res.json({ message: "ما فيه بيانات سوق الآن" });
         }
 
         const result = runStrategy(stocks);
 
         let trade = null;
+
         if (result.bestStock) {
             trade = executeTrade(
                 result.decision,
@@ -40,16 +55,31 @@ ${result.bestStock.name} (${result.bestStock.symbol})
             }
 
             await sendTelegram(message);
+
+            history.push({
+                stock: result.bestStock.name,
+                decision: result.decision,
+                price: result.bestStock.price,
+                time: new Date()
+            });
         }
 
-        return res.json({
-            "أفضل_سهم": result.bestStock || null,
-            "القرار": result.decision || "انتظار",
-            "الصفقة": trade
+        res.json({
+            result,
+            trade,
+            history
         });
+
     } catch (error) {
-        return res.status(500).json({
-            error: error.message
-        });
+        console.log(error);
+        res.status(500).json({ error: error.message });
     }
+});
+
+app.get('/profit', (req, res) => {
+    res.json({ history });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
