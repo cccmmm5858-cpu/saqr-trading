@@ -16,8 +16,9 @@ app.get('/', (req, res) => {
 
 app.get('/run', async (req, res) => {
     try {
-        // 🔥 اختبار البداية
-        await sendTelegram("🔥 بدأ تشغيل /run");
+        await sendTelegram("🔥 اختبار مباشر شغال");
+
+        const stocks = await getMarketData();
 
         // 🧠 جلب البيانات مع timeout (عشان ما يعلق)
         const stocks = await Promise.race([
