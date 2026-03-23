@@ -1,13 +1,14 @@
 function runStrategy(data) {
-    if (data.rsi < 30 && data.trend === "up") {
-        return "BUY";
+
+    if (data.rsi < 35) {
+        return "شراء";
     }
 
-    if (data.rsi > 70) {
-        return "SELL";
+    if (data.rsi > 60) {
+        return "بيع";
     }
 
-    return "HOLD";
+    return "انتظار";
 }
 
 module.exports = { runStrategy };
