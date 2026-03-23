@@ -1,11 +1,26 @@
 const axios = require('axios');
 
+// قائمة الأسهم
 const symbols = [
   "2222.SR","1120.SR","2010.SR","7010.SR","7020.SR",
   "7030.SR","1211.SR","2020.SR","1180.SR","1050.SR"
 ];
 
-// حساب RSI
+// أسماء الأسهم بالعربي
+const names = {
+  "2222.SR": "أرامكو",
+  "1120.SR": "الراجحي",
+  "2010.SR": "سابك",
+  "7010.SR": "STC",
+  "7020.SR": "موبايلي",
+  "7030.SR": "زين",
+  "1211.SR": "معادن",
+  "2020.SR": "سافكو",
+  "1180.SR": "الأهلي",
+  "1050.SR": "الإنماء"
+};
+
+// حساب RSI الحقيقي
 function calculateRSI(closes, period = 14) {
     let gains = 0;
     let losses = 0;
@@ -25,6 +40,7 @@ function calculateRSI(closes, period = 14) {
     return 100 - (100 / (1 + rs));
 }
 
+// جلب بيانات السوق
 async function getMarketData() {
     let results = [];
 
@@ -45,6 +61,7 @@ async function getMarketData() {
 
             results.push({
                 symbol,
+                name: names[symbol] || symbol,
                 price,
                 rsi,
                 trend: rsi < 50 ? "صعود" : "هبوط"
