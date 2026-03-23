@@ -26,10 +26,14 @@ app.get('/run', async (req, res) => {
     lastTrade = trade;
 
     res.json({
-        market: data,
-        decision,
-        trade
-    });
+    "السوق": {
+        "السعر": data.price,
+        "RSI": data.rsi,
+        "الاتجاه": data.trend
+    },
+    "القرار": decision,
+    "الصفقة": trade
+});
 });
 
 // آخر صفقة
