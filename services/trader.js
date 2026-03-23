@@ -28,3 +28,9 @@ function executeTrade(decision, price) {
 }
 
 module.exports = { executeTrade };
+
+history.push({
+    price,
+    decision,
+    time: new Date()
+});
