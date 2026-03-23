@@ -6,74 +6,60 @@ const { runStrategy } = require('./services/strategy');
 const { executeTrade } = require('./services/trader');
 const { sendTelegram } = require('./services/telegram');
 
+let history = [];
+
 app.get('/', (req, res) => {
     res.send('بوت التداول يعمل 🚀');
 });
 
 app.get('/run', async (req, res) => {
+    try {
+        const stocks = await getMarketData();
+        const result = runStrategy(stocks);
 
-    const stocks = await getMarketData();
-    const result = runStrategy(stocks);
+        let trade = null;
 
-    let trade = null;
+        if (result.bestStock) {
+            trade = executeTrade(
+                result.decision,
+                result.bestStock.price,
+                result.bestStock.rsi
+            );
 
-    if (result.bestStock) {
-        trade = executeTrade(
-            result.decision,
-            result.bestStock.price,
-            result.bestStock.rsi
-        );
-    }
+            history.push(trade);
+        }
 
-    if (result.bestStock) {
-
-        let message = `
-📊 أفضل سهم:
-${result.bestStock.name} (${result.bestStock.symbol})
-
+        if (result.bestStock) {
+            let message = `
+📊 السهم: ${result.bestStock.name || "غير معروف"}
 💰 السعر: ${result.bestStock.price}
-📉 RSI: ${result.bestStock.rsi.toFixed(2)}
+📉 RSI: ${result.bestStock.rsi}
 
 🤖 القرار: ${result.decision}
-        `;
 
-        if (trade && trade["الإجراء"] === "شراء") {
-            message += `
-
-💰 الدخول: ${trade["سعر_الدخول"]}
-🎯 الهدف: ${trade["الهدف"]}
-🛑 الوقف: ${trade["وقف_الخسارة"]}
+🎯 الهدف: ${trade?.target || "-"}
+🛑 وقف الخسارة: ${trade?.stopLoss || "-"}
             `;
+
+            await sendTelegram(message);
         }
 
-        if (trade && trade["الإجراء"] === "بيع (هدف)") {
-            message += `
+        res.json({
+            stock: result.bestStock,
+            decision: result.decision,
+            trade,
+        });
 
-✅ تحقق الهدف
-💰 الربح: ${trade["الربح"]}
-            `;
-        }
-
-        if (trade && trade["الإجراء"] === "بيع (وقف خسارة)") {
-            message += `
-
-❌ وقف الخسارة
-💸 الخسارة: ${trade["الخسارة"]}
-            `;
-        }
-
-        await sendTelegram(message);
+    } catch (error) {
+        res.json({ error: error.message });
     }
+});
 
-    res.json({
-        "أفضل_سهم": result.bestStock,
-        "القرار": result.decision,
-        "الصفقة": trade
-    });
+app.get('/profit', (req, res) => {
+    res.json({ history });
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
