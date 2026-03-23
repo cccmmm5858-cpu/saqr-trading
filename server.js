@@ -25,7 +25,6 @@ app.get('/run', async (req, res) => {
         );
     }
 
-    // إرسال تيليجرام
     if (result.bestStock) {
 
         let message = `
@@ -73,7 +72,6 @@ ${result.bestStock.name} (${result.bestStock.symbol})
     });
 });
 
-// مهم لـ Railway
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
