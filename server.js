@@ -1,72 +1,65 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+const { sendTelegram } = require('./services/telegram');
 
-const { getMarketData } = require('./services/market');
-const { runStrategy } = require('./services/strategy');
-const { executeTrade, history } = require('./services/trader');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-let lastTrade = null;
-
-// الصفحة الرئيسية
-app.get('/', (req, res) => {
-    res.send('Trading Bot Running 🚀');
-});
-
-// تشغيل البوت يدوي
 app.get('/run', async (req, res) => {
-    const data = await getMarketData();
-    const decision = runStrategy(data);
-    const trade = executeTrade(decision, data.price);
 
-    lastTrade = trade;
+    const stocks = await getMarketData();
+    const result = runStrategy(stocks);
+
+    let trade = null;
+
+    if (result.bestStock) {
+        trade = executeTrade(
+            result.decision,
+            result.bestStock.price,
+            result.bestStock.rsi
+        );
+    }
+
+    // رسالة تيليجرام
+    if (result.bestStock && trade) {
+
+        let message = `
+📊 أفضل سهم:
+${result.bestStock.name} (${result.bestStock.symbol})
+
+📉 RSI: ${result.bestStock.rsi.toFixed(2)}
+🤖 القرار: ${result.decision}
+        `;
+
+        // شراء
+        if (trade["الإجراء"] === "شراء") {
+            message += `
+
+💰 سعر الدخول: ${trade["سعر_الدخول"]}
+🎯 الهدف: ${trade["الهدف"]}
+🛑 وقف الخسارة: ${trade["وقف_الخسارة"]}
+            `;
+        }
+
+        // بيع هدف
+        if (trade["الإجراء"] === "بيع (هدف)") {
+            message += `
+
+✅ تم تحقيق الهدف
+💰 الربح: ${trade["الربح"]}
+            `;
+        }
+
+        // وقف خسارة
+        if (trade["الإجراء"] === "بيع (وقف خسارة)") {
+            message += `
+
+❌ تم ضرب وقف الخسارة
+💸 الخسارة: ${trade["الخسارة"]}
+            `;
+        }
+
+        await sendTelegram(message);
+    }
 
     res.json({
-    "السوق": {
-        "السعر": data.price,
-        "RSI": data.rsi,
-        "الاتجاه": data.trend
-    },
-    "القرار": decision,
-    "الصفقة": trade
-});
-});
-
-// آخر صفقة
-app.get('/status', (req, res) => {
-    res.json({
-        lastTrade
+        "أفضل_سهم": result.bestStock,
+        "القرار": result.decision,
+        "الصفقة": trade
     });
-});
-
-// سجل الصفقات
-app.get('/history', (req, res) => {
-    res.json(history);
-});
-
-// الأرباح
-app.get('/profit', (req, res) => {
-    res.json({
-        history,
-    });
-});
-
-// تشغيل تلقائي كل دقيقة 🤖
-setInterval(async () => {
-    const data = await getMarketData();
-    const decision = runStrategy(data);
-    const trade = executeTrade(decision, data.price);
-
-    console.log("AUTO:", { data, decision, trade });
-}, 60000);
-
-// PORT مهم لـ Railway
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log(`Bot running on port ${PORT}`);
 });
