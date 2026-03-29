@@ -1,4 +1,4 @@
-function executeTrade(decision, price, rsi) {
+function executeTrader(decision, price, rsi) {
     if (decision !== "شراء") {
         return {
             "الإجراء": "انتظار"
