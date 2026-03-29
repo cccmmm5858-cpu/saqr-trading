@@ -6,8 +6,8 @@ function executeTrader(decision, price, rsi) {
     }
 
     const entry = price;
-    const target = price * 1.01; // 1%
-    const stopLoss = price * 0.995; // 0.5%
+    const target = price * 1.01;    // هدف ربح 1%
+    const stopLoss = price * 0.995; // وقف خسارة 0.5%
 
     return {
         "الإجراء": "شراء",
@@ -17,4 +17,5 @@ function executeTrader(decision, price, rsi) {
     };
 }
 
-module.exports = { executeTrade };
+// التأكد من أن الاسم هنا يطابق اسم الدالة أعلاه (تم إضافة حرف r)
+module.exports = { executeTrader };
